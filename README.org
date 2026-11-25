@@ -1,0 +1,42 @@
+* Simple Arduino Uno R3 Serial Driver
+
+Arduino Uno R3 uses the ATMega328P.
+This USART driver is for that specific microcontroller and board, and is built on top of [[https://www.nongnu.org/avr-libc/user-manual/index.html][AVR Libc]].
+
+USART can work in synchronous or asynchronous mode, which is configured in the register ~UCSR0C~, specifically bits 6 (~UMSEL00~)and 7 (~UMSEL01~).
+This driver will use asynchronous mode, which is configured by setting ~UMSEL00 = 0~ and ~UMSEL01 = 0~:
+#+begin_src C
+  UCSR0C  &= ~((1 << UMSEL00) | (1 << UMSEL01));
+#+end_src
+In this mode, the baud rate is given by ~F_CPU / (16 * BAUD_RATE) - 1~, and is configured in the two registers ~UBRR0H~ and ~UBRR0L~:
+#+begin_src C
+  uint16_t ubrr = F_CPU / (16U * BAUD_RATE) - 1;
+  UBRR0H = (uint8_t) (ubrr >> 8);
+  UBRR0L = (uint8_t) ubrr;
+#+end_src
+The former contains the 4 most significant bits of the baud rate and the latter the 8 least significant bits, for a total of 12 bits.
+
+The Arduino can act as a receiver and transmitter of data, and this is configured in the register ~UCSR0B~.
+It is a receiver if bit 4 ~RXEN0~ is set to 1, and it is a transmitter if bit 3 ~TXEN0~ is set to 1:
+#+begin_src C
+  UCSR0C  |= (1 << RXEN0) | (1 << TXEN0);
+#+end_src
+When it is a transmitter of data, some number stop bits are needed.
+There can be 1 or 2 stop bits, and this is configured in bit 3 ~USBS0~ of the register ~UCSR0C~.
+For 1 stop bit set ~USBS0 = 0~ and for 2 stop bits set ~USBS0 = 1~:
+#+begin_src C
+  UCSR0C  |= (1 << USBS0);
+#+end_src
+The size of each data packet is set in bits 1 ~UCSZ00~ and 2 ~UCSZ01~ in regitsre ~UCSR0C~ as well as bit 2 ~UCSZ02~ in register ~UCSR0B~.
+For 8 bits, set ~UCSZ00 = 1~, ~UCSZ01 = 1~, ~UCSZ02 = 0~:
+#+begin_src C
+  UCSR0C  |= (1 << UCSZ00) | (1 << UCSZ01);
+  UCSR0B  &= ~(1 << UCSZ02);
+#+end_src
+
+Some form of error checking can be done using parity bits 4 ~UPM01~ and 5 ~UPM01~ in register ~UCSR0C~.
+Setting both bits to 0 disables parity checks:
+#+begin_src C
+  UCSR0C  &= ~((1 << UPM00) | (1 << UPM01));
+#+end_src
+
