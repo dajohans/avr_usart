@@ -7,12 +7,12 @@ void usart_init() {
 	UCSR0C  &= ~((1 << UMSEL00) | (1 << UMSEL01));
 
 	// set baud rate
-	uint16_t ubrr = F_CPU / (16U * BAUD_RATE) - 1;
+	uint16_t ubrr = F_CPU / (16UL * BAUD_RATE) - 1;
 	UBRR0H = (uint8_t) (ubrr >> 8);
 	UBRR0L = (uint8_t) ubrr;
 
 	// configure as receiver and transmitter
-	UCSR0C  |= (1 << RXEN0) | (1 << TXEN0);
+	UCSR0B  |= (1 << RXEN0) | (1 << TXEN0);
 
 	// set 2 stop bits
 	UCSR0C  |= (1 << USBS0);
