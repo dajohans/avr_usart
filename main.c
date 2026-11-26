@@ -36,15 +36,28 @@ void transmitter_wait() {
 	}
 }
 
-void usart_print(unsigned char c) {
+void usart_print_char(unsigned char c) {
 	transmitter_wait();
 	UDR0 = c;
 }
 
+void usart_print(const char* str) {
+	for(uint16_t i = 0; str[i] != '\0'; i++) {
+		usart_print_char(str[i]);
+	}
+}
+
+void usart_println(const char* str) {
+	usart_print(str);
+	usart_print_char('\r'); // Goto start of line
+	usart_print_char('\n');
+}
+
 int main() {
 	usart_init();
+	usart_println("Hello, world!");
+	usart_print("Hello, world!");
 	while(1) {
-		usart_print('a');
 	}
 	return 0;
 }
