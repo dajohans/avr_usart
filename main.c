@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <stdbool.h>
 
 #define BAUD_RATE 9600
 
@@ -25,8 +26,25 @@ void usart_init() {
 	UCSR0C  &= ~((1 << UPM00) | (1 << UPM01));
 }
 
+bool transmitter_ready() {
+	return (UCSR0A & (1 << UDRE0)) == (1 << UDRE0);
+}
+
+void transmitter_wait() {
+	while(!transmitter_ready()) {
+		// Busy-wait untill transmitter is ready
+	}
+}
+
+void usart_print(unsigned char c) {
+	transmitter_wait();
+	UDR0 = c;
+}
+
 int main() {
+	usart_init();
 	while(1) {
+		usart_print('a');
 	}
 	return 0;
 }
