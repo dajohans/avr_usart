@@ -43,3 +43,19 @@ Setting both bits to 0 disables parity checks:
   UCSR0C  &= ~((1 << UPM00) | (1 << UPM01));
 #+end_src
 
+* Sending characters over USART
+
+The microcontroller is configured to send 8 bits of data, and we send them by writing to the register ~UDR0~.
+But before writing to the register, we need to wait for the USART transmitter to be ready.
+When bit 5 ~UDRE0~ of register ~UCSR0A~ is 1 then it is ready, otherwise not.
+We extract the bit from ~UCSR0A~ with ~(UCSR0A & (1 << UDRE0))~, and if this bit is 1 then this produces the value ~(1 << UDRE0) = 1 << 5 = 32~
+We check that it's ready with:
+#+begin_src C
+  (UCSR0A & (1 << UDRE0)) == (1 << UDRE0)
+#+end_src
+Once the transmitter is ready, then we write a character with:
+#+begin_src C
+  UDR0 = 'a';
+#+end_src
+
+
